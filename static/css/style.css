@@ -1,0 +1,41 @@
+.verde {
+    background: #008000;
+    padding: 20px;
+    border-radius: 5px;
+    color: #fff;
+}
+
+.orange {
+    background: #fefd04;
+    padding: 20px;
+    border-radius: 5px;
+    color: #000;
+}
+
+.orange {
+    background: #ff8c00;
+    padding: 20px;
+    border-radius: 5px;
+    color: #fff;
+}
+
+.red {
+    background: #ff0000;
+    padding: 20px;
+    border-radius: 5px;
+    color: #fff;
+}
+
+h2#response {
+    background: #1485CC;
+    padding: 2.7rem;
+    margin-top: 10px;
+    font-size: 2.5rem;
+    text-align: center;
+    color: #fff;
+    border-radius: 5px;
+}
+
+.jumbotron {
+    padding: 1rem 2rem;
+}

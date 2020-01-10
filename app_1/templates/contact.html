@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+{% load static %}
+{% block head %}
+	<title>Contact Form[FBV]</title>
+{% endblock %}
+{% block style %}
+{% endblock %}
+{% block content %}
+	<div class="container">
+		<div class="jumbotron bg">
+			<h1 class="text-center display-4">Heat Index</h1>
+			<p class="lead text-center">Calcolatore Rischio Heat Index</p>
+		</div>
+		<div class="justify-content-center align-items-center">
+			<div class="row">
+			<div class="col-sm-6 ">	
+				<form id = "contactForm" method= "POST" style="margin-top: 20px;">{% csrf_token %}
+					{{ contactForm.as_p }}
+                <div class="alert alert-danger d-none" role="alert" id="error_temp">
+                    inserisci valore di temperatura maggiore di 26.7
+				  </div>
+				  <div class="alert alert-danger d-none" role="alert" id="error_max_temp">
+                    inserisci valore di temperatura minore di 43.3
+                  </div>
+                  <div class="alert alert-danger d-none" role="alert" id="error_umid">
+                    inserisci valore di umidità maggiore di 40
+				  </div>
+				  <div class="alert alert-danger d-none" role="alert" id="error_max_umid">
+                    inserisci valore di umidità minore di 110
+                  </div>
+					<input type="submit" name="contact-submit" class="btn btn-primary"  id="spingi"/>
+				</form>
+				<h2 id="response" style="opacity: 0;"></h2>
+				
+			</div>
+			<div class="col-md-6">
+					<div id="result"></div>
+						<img src="{% static 'img/NOAAs_Heat_Index.jpg' %}" alt="NOAAs_Heat_Index" style="width: 100%;">
+						<h1 id="rischio" class="animated fadeInDown" style="margin-top: 10px;"></h1>
+					</div>
+					
+				</div>
+		</div>
+	</div>
+	
+{% endblock %}
+{{ temperatura }}
+{% block script %}
+<script src="{% static 'js/function.js' %}"></script>
+	<script type="text/javascript">
+
+				var gradi = "gradi centigradi"
+				var fare = "gradi fahrenheit"
+	
+
+
+		$(document).ready(function()
+		{
+			$("#id_unita").change(function()
+			{
+				var scelta = $( "#id_unita option:selected" ).text();
+				conversioneCF(scelta)
+			})
+		})
+
+		function conversioneCF(val) 
+	{
+			switch(val){
+
+			case (gradi): 
+
+			$("#contactForm").submit(function(e)
+			{
+			e.preventDefault();
+			})
+			var temp_minimo = 27.6
+			var umid_minimo = 40
+			
+			
+			document.querySelector("#contactForm > p:nth-child(3) > label").append(" °C")
+			$("#id_temperatura , #id_umidita").change(function(e) 
+				{
+					var temperatura = $("#id_temperatura").val()
+					var umidita = $("#id_umidita").val()
+					document.querySelector("#contactForm > p:nth-child(3) > label").innerText = " temperatura °C"
+					var CtoF = (temperatura * 9/5) + 32 
+					document.querySelector("#contactForm > p:nth-child(3) > label").append("  ______   °F =   " + CtoF.toFixed(2))
+
+					if(temperatura) {
+						controllaT(temperatura) 
+					} 
+					
+					if (umidita) {
+						controllaU(umidita)
+					}
+					if(verotemp == true && veroumid == true) 
+					{
+						document.querySelector("#spingi").onclick = function()
+							{
+						document.getElementById("response").style.opacity = 1
+							}
+					
+					$("#contactForm").submit(function(e, num){
+					e.preventDefault();
+
+					document.querySelector("#contactForm > p:nth-child(3) > label").innerText = "Temperatura °C"
+						
+						var temperatura = $("#id_temperatura").val();
+						var umidita = $("#id_umidita").val();
+						var text = document.querySelector("#contactForm > p:nth-child(3) > label").innerText
+						var unita = text.search(" °C")
+						temperatura = (temperatura * 9/5) + 32 
+						
+						var serializedData = $(this).serialize();
+						 $.ajax({
+								type : 'POST',
+								url :  "{% url 'contact_submit' %}",
+								// data : serializedData,
+								data : {"csrfmiddlewaretoken" : "{{csrf_token}}", temperatura : temperatura, umidita : umidita},
+								// dataType : 'json',
+								// data : { "temperatura" : $("#id_temperatura").val()}
+								success : function(data)
+								{
+									$("#contactForm")[0].reset();
+									document.querySelector("#contactForm > p:nth-child(3) > label").innerText = "Temperatura"
+									
+
+									$('#response').html(data);
+									var ris = $("#response").text()
+									ris = parseFloat(ris)
+									rischio(ris)
+								},
+							error : function(response){
+								console.log(response)
+							}
+						})
+					})
+				}
+			})
+break;	
+			
+
+			case (fare): 
+
+			$("#contactForm").submit(function(e)
+			{
+			e.preventDefault();
+			})
+			var temp_minimo = 27.6
+			var umid_minimo = 40
+			
+			
+			document.querySelector("#contactForm > p:nth-child(3) > label").innerText = " temperatura °F" 
+			$("#id_temperatura , #id_umidita").change(function(e) {
+				var temperatura = $("#id_temperatura").val()
+				var umidita = $("#id_umidita").val()
+				document.querySelector("#contactForm > p:nth-child(3) > label").innerText = " temperatura °F"
+				if(temperatura > 0 ) { 
+					var FtoC = (temperatura - 32) * 5/9 
+			}
+				document.querySelector("#contactForm > p:nth-child(3) > label").append("  ______   °C =   " + FtoC.toFixed(2))
+				
+				if(temperatura) {
+					controllaT(FtoC) 
+				} 
+				
+				if (umidita) {
+					controllaU(umidita)
+				}
+				if(verotemp == true && veroumid == true) 
+					{
+						
+
+						document.querySelector("#spingi").onclick = function()
+							{
+							document.getElementById("response").style.opacity = 1
+							
+							}
+					
+
+
+						$("#contactForm").submit(function(e, num){
+						e.preventDefault();
+	
+					document.querySelector("#contactForm > p:nth-child(3) > label").innerText = "Temperatura °F"
+
+
+					var temperatura = $("#id_temperatura").val();
+					var umidita = $("#id_umidita").val();
+					var text = document.querySelector("#contactForm > p:nth-child(3) > label").innerText
+					var unita = text.search(" °C")
+					temperatura = temperatura
+        
+										var serializedData = $(this).serialize();
+										// alert(serializedData)
+										$.ajax({
+											type : 'POST',
+											url :  "{% url 'contact_submit' %}",
+											// data : serializedData,
+											data : {"csrfmiddlewaretoken" : "{{csrf_token}}", temperatura : temperatura, umidita : umidita},
+											// dataType : 'json',
+											// data : { "temperatura" : $("#id_temperatura").val()}
+											success : function(data){
+												$("#contactForm")[0].reset();
+												document.querySelector("#contactForm > p:nth-child(3) > label").innerText = "Temperatura"
+												
+
+												$('#response').html(data);
+												var ris = $("#response").text()
+												ris = parseFloat(ris)
+												rischio(ris)
+												// console.log(response);
+												// alert(response);
+												// var text = response.innerHTML
+												// document.getElementById("response").innerHTML = text
+												
+											
+											},
+											error : function(response){
+												console.log(response)
+											}
+										})
+									})
+    							}
+							})
+			
+
+				
+				break;	
+	}
+}
+					
+
+			
+
+			
+
+			
+	function rischio(num){
+
+		var ris = document.querySelector("#rischio")
+		
+		ris.className= 'animated fadeInDown'
+
+		if (num <= 90) {
+        message = "Nessun rischio di colpo di calore";
+        // var ris = document.querySelector("#rischio")
+		// ris.className= 'animated fadeInDown'
+		ris.innerHTML = message;
+		ris.classList.add('verde');
+		
+    }
+        if (num <= 104) {
+            message = "Estrema cautela, possibili crampi muscolari, esaurimento fisico";
+            // var ris = document.querySelector("#ris");
+            // ris.className= animazione
+            ris.innerHTML = message;
+            ris.classList.add('animated fadeInDown gold');
+        }
+        // if (num <= 129) {
+        //     message = "Rischio possibile di colpo di calore";
+		// 	// var ris = document.querySelector("#ris");
+			
+        //     ris.className= animazione
+        //     ris.innerHTML = message;
+        //     ris.classList.add('animated' ,'fadeInDown', 'orange');
+        // }
+        if (num <= 129) {
+            message = "Rischio possibile di colpo di calore";
+            // var ris = document.querySelector("#ris");
+            // ris.className= animazione
+            ris.innerHTML = message;
+            ris.classList.add('animated' ,'fadeInDown', 'orange');
+        }
+            if (num >= 130)  {
+                message = "Rischio elevato di colpo di calore";
+                // var ris = document.querySelector("#ris");
+                // ris.className= animazione
+                ris.innerHTML = message;
+                ris.classList.add('animated' ,'fadeInDown', 'red');
+                // alert("attenzione il valore è troppo alto " + num)
+                // alert("attenzione ")
+            }
+	}
+var verotemp = false
+var veroumid = false
+
+// function controllaT(t) {
+// 	$("#contactForm").submit(function(e, num){
+// 		e.preventDefault();
+// 		})
+// 	var box = document.querySelector("#rischio")
+        
+//         if(box) {
+//             box.classList.remove("d-block")
+//             box.classList.add("d-none")
+//         }
+
+//         var temperatura = t
+//         // var umidita = u
+        
+// 		var err_temp = document.getElementById("error_temp")
+// 		var err_max_temp = document.getElementById("error_max_temp")
+//         var err_umid = document.getElementById("error_umid")
+//         var minimo_temp = 26.6 
+// 		var minmo_umidita = 39
+// 		var max_temp = 43.3
+// 		var max_umid = 110
+
+//        if( temperatura < minimo_temp ) {
+		   
+//             err_temp.classList.remove("d-none")
+// 			err_temp.classList.add("d-block")
+// 			verotemp = false
+// 		} 
+// 			 else if (temperatura > max_temp) 
+// 			{
+				
+// 				err_temp.classList.remove('d-block')
+// 				err_temp.classList.add('d-none')
+
+// 				err_max_temp.classList.remove("d-none")
+// 				err_max_temp.classList.add("d-block")
+// 				verotemp = false
+// 			}
+// 				else 
+// 				{
+// 					err_max_temp.classList.remove("d-block")
+// 					err_max_temp.classList.add("d-none")
+				
+// 					err_temp.classList.remove('d-block')
+// 					err_temp.classList.add('d-none')
+
+// 					err_umid.classList.remove('d-block')
+// 					err_umid.classList.add('d-none')
+// 					verotemp = true
+// 				}
+// }
+
+// function controllaU(u) {
+	
+// 	var box = document.querySelector("#rischio")
+        
+//         if(box) {
+//             box.classList.remove("d-block")
+//             box.classList.add("d-none")
+//         }
+
+//         var umidita = u
+//         // var umidita = u
+        
+//         var err_temp = document.getElementById("error_temp")
+// 		var err_umid = document.getElementById("error_umid")
+// 		var err_max_umid = document.getElementById("error_max_umid")
+//         var minimo_temp = 27.6 
+// 		var minimo_umidita = 40
+// 		var max_temp = 43.3
+// 		var max_umid = 110
+
+//        if( umidita < minimo_umidita ) {
+// 		$("#contactForm").submit(function(e, num){
+// 		e.preventDefault();
+// 		})
+		   
+//             err_umid.classList.remove("d-none")
+// 			err_umid.classList.add("d-block")
+// 			veroumid = false
+// 		} 
+// 		else if (umidita > max_umid) 
+// 			{
+				
+// 				err_umid.classList.remove("d-block")
+// 				err_umid.classList.add("d-none")
+				
+// 				err_max_umid.classList.remove("d-none")
+// 				err_max_umid.classList.add("d-block")
+// 				veroumid = false
+// 			}
+
+// 		else {
+// 			err_max_umid.classList.remove("d-block")
+// 			err_max_umid.classList.add("d-none")
+
+// 			err_umid.classList.remove('d-block')
+//             err_umid.classList.add('d-none')
+// 			veroumid = true
+// 		}
+// }
+
+	
+
+	
+
+			
+			
+		
+	</script>
+{% endblock %}
